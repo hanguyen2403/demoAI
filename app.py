@@ -4,6 +4,33 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
+st.set_page_config(page_title="Plant Disease Classifier", layout="wide")
+
+# Apply custom background color
+st.markdown(
+    """
+    <style>
+    body {
+        background-color:rgb(219, 70, 192);
+        color: black;
+    }
+    
+    [data-testid="stSidebar"] {
+        background-color: rgb(187, 187, 187);
+        color: black;
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background-color:rgb(54, 55, 57);
+    }
+    
+    [data-testid="stHeader"] {
+        background-color:rgb(54, 55, 57);
+    
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # ---------------------------
 # 1. Load the Pretrained Model
 # ---------------------------
@@ -35,8 +62,6 @@ def load_model(checkpoint_path, num_classes=10):
 # Adjust the checkpoint path if necessary.
 checkpoint_path = "Tomato-EfficientNetB3_model.pth"
 model, device = load_model(checkpoint_path, num_classes=10)
-st.write("Model loaded successfully!")
-
 # ---------------------------
 # 2. Define the Transformation
 # ---------------------------
@@ -56,37 +81,84 @@ class_names = [
     "healthy"
 ]
 
+with st.sidebar:
+    st.header("🌱 Plant Disease Classifier")
+    st.write(
+        """
+        Welcome to the Plant Disease Classification Web App! 🌿
+        
+        This tool allows you to upload images of tomato and lettuce leaves to detect potential diseases using advanced deep learning models.
+        
+        Simply upload an image and click 'Predict' to see the diagnosis.
+        """
+    )
+
+
+tabs = st.tabs(["🍅 Tomato Disease Classification", "🥬 Lettuce Disease Classification"])
 # ---------------------------
 # 4. Streamlit UI
 # ---------------------------
-st.title("Smart Vertical Farming: Tomato Disease Detection")
-st.write("Select one or more image files using the file uploader below:")
+with tabs[0]:
+    st.title("🍅 Tomato Disease Classification Demo")
+    st.write("Upload an image of a tomato leaf, and the model will predict its health condition.")
 
-uploaded_files = st.file_uploader("Choose image files", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Choose image files", type=["jpg", "jpeg", "png"], accept_multiple_files=True, key="tomato_uploader")
 
-if uploaded_files:
-    if st.button("Predict"):
-        st.write("### Predictions")
-        images_list = []
-        predicted_labels = []
+    if uploaded_files:
+        if st.button("Predict"):
+            st.write("### Predictions")
+            images_list = []
+            predicted_labels = []
 
-        for uploaded_file in uploaded_files:
-            image = Image.open(uploaded_file).convert("RGB")
-            input_tensor = test_transform(image).unsqueeze(0).to(device)
+            for uploaded_file in uploaded_files:
+                image = Image.open(uploaded_file).convert("RGB")
+                input_tensor = test_transform(image).unsqueeze(0).to(device)
 
-            with torch.no_grad():
-                outputs = model(input_tensor)
-                _, pred = torch.max(outputs, 1)  # Use raw logits directly
+                with torch.no_grad():
+                    outputs = model(input_tensor)
+                    _, pred = torch.max(outputs, 1)  # Use raw logits directly
 
-            predicted_label = class_names[pred.item()]
-            images_list.append(image)
-            predicted_labels.append(predicted_label)
+                predicted_label = class_names[pred.item()]
+                images_list.append(image)
+                predicted_labels.append(predicted_label)
 
-        # Display Images
-        num_cols = 5
-        num_images = len(images_list)
-        for i in range(0, num_images, num_cols):
-            cols = st.columns(num_cols)
-            for j, image in enumerate(images_list[i:i + num_cols]):
-                caption = f"Predicted: {predicted_labels[i + j]}"
-                cols[j].image(image, caption=caption, use_container_width=True)
+            # Display Images
+            num_cols = 5
+            num_images = len(images_list)
+            for i in range(0, num_images, num_cols):
+                cols = st.columns(num_cols)
+                for j, image in enumerate(images_list[i:i + num_cols]):
+                    caption = f"Predicted: {predicted_labels[i + j]}"
+                    cols[j].image(image, caption=caption, use_container_width=True)
+with tabs[1]:
+    st.title("🥬 Lettuce Disease Classification Demo")
+    st.write("Upload an image of a lettuce leaf, and the model will predict its health condition.")
+
+    uploaded_files = st.file_uploader("Choose image files", type=["jpg", "jpeg", "png"], accept_multiple_files=True, key="lettuce_uploader")
+
+    if uploaded_files:
+        if st.button("Predict"):
+            st.write("### Predictions")
+            images_list = []
+            predicted_labels = []
+
+            for uploaded_file in uploaded_files:
+                image = Image.open(uploaded_file).convert("RGB")
+                input_tensor = test_transform(image).unsqueeze(0).to(device)
+
+                with torch.no_grad():
+                    outputs = model(input_tensor)
+                    _, pred = torch.max(outputs, 1)  # Use raw logits directly
+
+                predicted_label = class_names[pred.item()]
+                images_list.append(image)
+                predicted_labels.append(predicted_label)
+
+            # Display Images
+            num_cols = 5
+            num_images = len(images_list)
+            for i in range(0, num_images, num_cols):
+                cols = st.columns(num_cols)
+                for j, image in enumerate(images_list[i:i + num_cols]):
+                    caption = f"Predicted: {predicted_labels[i + j]}"
+                    cols[j].image(image, caption=caption, use_container_width=True)
