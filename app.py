@@ -59,7 +59,7 @@ def load_model(checkpoint_path, num_classes=10):
     model.eval()
     return model, device
 
-tomato_model, tomato_device = load_model("Tomato1-EfficientNetB3_model.pth", num_classes=10)
+tomato_model, tomato_device = load_model("Tomato-EfficientNetB3_model.pth", num_classes=10)
 
 # Load Lettuce Model (8 classes)
 lettuce_model, lettuce_device = load_model("Lettuce-EfficientNetB3_model.pth", num_classes=8)
