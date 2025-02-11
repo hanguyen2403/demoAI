@@ -59,9 +59,10 @@ def load_model(checkpoint_path, num_classes=10):
     model.eval()
     return model, device
 
-# Adjust the checkpoint path if necessary.
-checkpoint_path = "Tomato-EfficientNetB3_model.pth"
-model, device = load_model(checkpoint_path, num_classes=10)
+tomato_model, tomato_device = load_model("Tomato1-EfficientNetB3_model.pth", num_classes=10)
+
+# Load Lettuce Model (8 classes)
+lettuce_model, lettuce_device = load_model("Lettuce-EfficientNetB3_model.pth", num_classes=8)
 # ---------------------------
 # 2. Define the Transformation
 # ---------------------------
@@ -74,11 +75,16 @@ test_transform = transforms.Compose([
 # ---------------------------
 # 3. Define Class Names Mapping
 # ---------------------------
-class_names = [
+tomato_class_names = [
     "Bacterial_spot", "Early_blight", "Late_blight",
     "Leaf_Mold", "Septoria_leaf_spot", "Spider_mites",
     "Target_Spot", "Tomato_Yellow_Leaf_Curl_Virus", "Tomato_mosaic_virus",
     "healthy"
+]
+
+lettuce_class_names = [
+    "Bacterial", "Downy", "Fungal", "Healthy", 
+    "Powdery", "Septoria", "Viral", "Wilt"
 ]
 
 with st.sidebar:
@@ -105,20 +111,20 @@ with tabs[0]:
     uploaded_files = st.file_uploader("Choose image files", type=["jpg", "jpeg", "png"], accept_multiple_files=True, key="tomato_uploader")
 
     if uploaded_files:
-        if st.button("Predict"):
+        if st.button("Predict", key="predict_tomato"):
             st.write("### Predictions")
             images_list = []
             predicted_labels = []
 
             for uploaded_file in uploaded_files:
                 image = Image.open(uploaded_file).convert("RGB")
-                input_tensor = test_transform(image).unsqueeze(0).to(device)
+                input_tensor = test_transform(image).unsqueeze(0).to(tomato_device)
 
                 with torch.no_grad():
-                    outputs = model(input_tensor)
+                    outputs = tomato_model(input_tensor)
                     _, pred = torch.max(outputs, 1)  # Use raw logits directly
 
-                predicted_label = class_names[pred.item()]
+                predicted_label = tomato_class_names[pred.item()]
                 images_list.append(image)
                 predicted_labels.append(predicted_label)
 
@@ -137,20 +143,20 @@ with tabs[1]:
     uploaded_files = st.file_uploader("Choose image files", type=["jpg", "jpeg", "png"], accept_multiple_files=True, key="lettuce_uploader")
 
     if uploaded_files:
-        if st.button("Predict"):
+        if st.button("Predict", key="predict_lettuce"):
             st.write("### Predictions")
             images_list = []
             predicted_labels = []
 
             for uploaded_file in uploaded_files:
                 image = Image.open(uploaded_file).convert("RGB")
-                input_tensor = test_transform(image).unsqueeze(0).to(device)
+                input_tensor = test_transform(image).unsqueeze(0).to(lettuce_device)
 
                 with torch.no_grad():
-                    outputs = model(input_tensor)
+                    outputs = lettuce_model(input_tensor)
                     _, pred = torch.max(outputs, 1)  # Use raw logits directly
 
-                predicted_label = class_names[pred.item()]
+                predicted_label = lettuce_class_names[pred.item()]
                 images_list.append(image)
                 predicted_labels.append(predicted_label)
 
